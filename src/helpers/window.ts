@@ -3,22 +3,32 @@
 // Can be used for more than one window, just construct many
 // instances of it and give each different name.
 
+// use
 import { app, BrowserWindow, screen } from 'electron';
+// type
+import { BrowserWindowConstructorOptions, Rectangle } from 'electron';
 const jetpack = require('fs-jetpack');
 
-export default function (name, options) {
+interface IRectangle {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+}
+
+export default function (name: string, options: BrowserWindowConstructorOptions): BrowserWindow {
 
     var userDataDir = jetpack.cwd(app.getPath('userData'));
-    var stateStoreFile = 'window-state-' + name +'.json';
-    var defaultSize = {
+    var stateStoreFile = 'window-state-' + name + '.json';
+    var defaultSize: IRectangle = {
         width: options.width,
         height: options.height
     };
     var state = {};
-    var win;
+    var win: BrowserWindow;
 
-    var restore = function () {
-        var restoredState = {};
+    var restore = function (): IRectangle {
+        var restoredState: IRectangle = {};
         try {
             restoredState = userDataDir.read(stateStoreFile, 'json');
         } catch (err) {
@@ -28,7 +38,7 @@ export default function (name, options) {
         return Object.assign({}, defaultSize, restoredState);
     };
 
-    var getCurrentPosition = function () {
+    var getCurrentPosition = function (): IRectangle {
         var position = win.getPosition();
         var size = win.getSize();
         return {
@@ -39,7 +49,7 @@ export default function (name, options) {
         };
     };
 
-    var windowWithinBounds = function (windowState, bounds) {
+    var windowWithinBounds = function (windowState: IRectangle, bounds: IRectangle) {
         return windowState.x >= bounds.x &&
             windowState.y >= bounds.y &&
             windowState.x + windowState.width <= bounds.x + bounds.width &&
@@ -54,7 +64,7 @@ export default function (name, options) {
         });
     };
 
-    var ensureVisibleOnSomeDisplay = function (windowState) {
+    var ensureVisibleOnSomeDisplay = function (windowState: IRectangle) {
         var visible = screen.getAllDisplays().some(function (display) {
             return windowWithinBounds(windowState, display.bounds);
         });
@@ -73,7 +83,7 @@ export default function (name, options) {
         userDataDir.write(stateStoreFile, state, { atomic: true });
     };
 
-    state = ensureVisibleOnSomeDisplay(restore());
+    // state = ensureVisibleOnSomeDisplay(restore());
 
     win = new BrowserWindow(Object.assign({}, options, state));
 

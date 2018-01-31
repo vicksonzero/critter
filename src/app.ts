@@ -3,10 +3,13 @@
 
 // Use new ES6 modules syntax for everything.
 import * as os from 'os'; // native node.js module
-import { remote } from 'electron'; // native electron module
+import { remote, ipcRenderer } from 'electron'; // native electron module
 const jetpack = require('fs-jetpack'); // module loaded from npm
-import { greet } from './hello_world/hello_world'; // code authored by you in this project
+import { greet, time } from './hello_world/hello_world'; // code authored by you in this project
 import env from './env';
+import moment from 'moment';
+
+import { scheduleJob } from 'node-schedule';
 
 console.log('Loaded environment variables:', env);
 
@@ -18,8 +21,33 @@ var appDir = jetpack.cwd(app.getAppPath());
 console.log('The author of this app is:', appDir.read('package.json', 'json').author);
 
 document.addEventListener('DOMContentLoaded', function () {
-  document.getElementById('greet').innerHTML = greet();
-  document.getElementById('platform-info').innerHTML = os.platform();
-  document.getElementById('env-name').innerHTML = env.name;
+  document.querySelector('#subtitle__edit').innerHTML = greet();
+  document.querySelector('#subtitle__edit').addEventListener('click', () => {
+    console.log('clicked');
+    prompt('hi', 'bye');
+  });
+  // document.getElementById('subtitle').innerHTML = os.platform();
+  // document.getElementById('env-name').innerHTML = env.name;
+  initChime();
+  updateGreet();
+});
+
+function updateGreet() {
+  document.querySelector('#clock').innerHTML = time();
+  // console.log('a');
+
+  setTimeout(() => updateGreet(), 0.5 * 1000);
+}
+
+function initChime() {
+  scheduleJob('0 * * * *', () => {
+    console.log('chime', moment().format('HH:mm:ss'));
+
+    document.getElementById('clock').className += ' clock--chime';
+  });
+}
+
+ipcRenderer.on('mainWindow', function () {
+  console.log('mainWindow', arguments);
 });
 
