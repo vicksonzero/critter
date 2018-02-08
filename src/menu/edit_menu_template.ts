@@ -1,7 +1,7 @@
 import { MenuItemConstructorOptions as MenuItemConstOptions } from 'electron';
-import { IMenuContext } from "./menuTemplateFactory";
+import { Context } from "../Context";
 
-export function editMenuTemplateFactory(ctx: IMenuContext): MenuItemConstOptions {
+export function editMenuTemplateFactory(ctx: Context): MenuItemConstOptions {
     return {
         label: 'Edit',
         submenu: [

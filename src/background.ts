@@ -6,14 +6,18 @@
 import * as path from 'path';
 import * as url from 'url';
 
-// to use
 import { app, Menu, Tray } from 'electron';
-
-// for its type
 import { BrowserWindow, MenuItemConstructorOptions } from 'electron';
+
+import * as fs from 'fs'; // module loaded from npm
+
+import { safeLoad, safeDump } from 'js-yaml';
+import { LoadOptions } from 'js-yaml';
+
 import { devMenuTemplateFactory } from './menu/dev_menu_template';
 import { editMenuTemplateFactory } from './menu/edit_menu_template';
-import { IMenuContext } from './menu/menuTemplateFactory';
+import { Context } from './Context';
+
 import createWindow from './helpers/window';
 
 // Special module holding environment variables which you declared
@@ -21,10 +25,10 @@ import createWindow from './helpers/window';
 import env from './env';
 
 // windows need to be created globally
-let mainWindow: BrowserWindow;
-let tray: Tray;
+let context = new Context();
+context.loadConfig('config/preference.yaml');
 
-var setApplicationMenu = function (ctx: IMenuContext) {
+var setApplicationMenu = function (ctx: Context) {
     const menus: MenuItemConstructorOptions[] = [];
     menus.push(editMenuTemplateFactory(ctx));
 
@@ -43,7 +47,7 @@ if (env.name !== 'production') {
 }
 
 app.on('ready', function () {
-    mainWindow = createWindow('main', {
+    context.mainWindow = createWindow('main', {
         width: 150,
         height: 150,
         transparent: true,
@@ -52,27 +56,27 @@ app.on('ready', function () {
         skipTaskbar: true,
     });
 
-    setApplicationMenu({ mainWindow });
+    setApplicationMenu(context);
 
-    mainWindow.loadURL(url.format({
+    context.mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'app.html'),
         protocol: 'file:',
         slashes: true
     }));
 
-    mainWindow.webContents.on('dom-ready', () => {
-        mainWindow.webContents.send('mainWindow', mainWindow);
+    context.mainWindow.webContents.on('dom-ready', () => {
+        context.mainWindow.webContents.send('context', context);
     });
 
     if (env.name === 'development') {
-        mainWindow.webContents.openDevTools({ mode: 'detach' });
+        context.mainWindow.webContents.openDevTools({ mode: 'detach' });
     }
 
-    tray = new Tray(path.join(__dirname, 'sprites/exit.png'));
+    context.tray = new Tray(path.join(__dirname, 'sprites/exit.png'));
 
-    const template = devMenuTemplateFactory({ mainWindow });
-    tray.setContextMenu(Menu.buildFromTemplate([template]));
-    tray.setToolTip('critter');
+    const template = devMenuTemplateFactory(context);
+    context.tray.setContextMenu(Menu.buildFromTemplate([template]));
+    context.tray.setToolTip('critter');
 });
 
 app.on('window-all-closed', function () {

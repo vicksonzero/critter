@@ -1,6 +1,6 @@
 import { app, BrowserWindow, MenuItemConstructorOptions as MenuItemConstOptions } from 'electron';
-import { IMenuContext } from './menuTemplateFactory';
-export function devMenuTemplateFactory(ctx: IMenuContext): MenuItemConstOptions {
+import { Context } from '../Context';
+export function devMenuTemplateFactory(ctx: Context): MenuItemConstOptions {
     const { mainWindow } = ctx;
     return {
         label: 'Development',
