@@ -4,30 +4,37 @@ export function devMenuTemplateFactory(ctx: Context): MenuItemConstOptions {
     const { mainWindow } = ctx;
     return {
         label: 'Development',
-        submenu: [{
-            label: 'Reload',
-            accelerator: 'CmdOrCtrl+R',
-            click: () => {
-                mainWindow.webContents.reloadIgnoringCache();
-            }
-        },
-        {
-            label: 'Open DevTools',
-            accelerator: 'Alt+CmdOrCtrl+I',
-            click: () => {
-                if (!mainWindow.webContents.isDevToolsOpened()) {
-                    mainWindow.webContents.openDevTools({ mode: 'detach' });
-                } else {
-                    mainWindow.webContents.closeDevTools();
+        submenu: [
+            {
+                label: 'Open Timer',
+                // accelerator: 'Alt+CmdOrCtrl+I',
+                click: () => { ctx.createTimerWindow(); }
+            },
+            {
+                label: 'Reload',
+                accelerator: 'CmdOrCtrl+R',
+                click: () => {
+                    mainWindow.webContents.reloadIgnoringCache();
+                }
+            },
+            {
+                label: 'Open DevTools',
+                accelerator: 'Alt+CmdOrCtrl+I',
+                click: () => {
+                    if (!mainWindow.webContents.isDevToolsOpened()) {
+                        mainWindow.webContents.openDevTools({ mode: 'detach' });
+                    } else {
+                        mainWindow.webContents.closeDevTools();
+                    }
+                }
+            },
+            {
+                label: 'Quit',
+                accelerator: 'CmdOrCtrl+Q',
+                click: () => {
+                    app.quit();
                 }
             }
-        },
-        {
-            label: 'Quit',
-            accelerator: 'CmdOrCtrl+Q',
-            click: () => {
-                app.quit();
-            }
-        }]
+        ]
     };
 };

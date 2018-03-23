@@ -5,6 +5,8 @@ import { safeLoad } from "js-yaml";
 import * as path from "path";
 import * as fs from "fs";
 
+import { Animation, AnimationSet } from "./Animation";
+
 export interface Preference {
     greetings: string;
 }
@@ -12,9 +14,15 @@ export interface Preference {
 export class Context {
 
     public mainWindow?: BrowserWindow;
+    public timerWindow?: BrowserWindow;
+
     public windows?: BrowserWindow[];
     public tray?: Tray;
     public config?: Preference;
+    public animationSets?: AnimationSet[];
+    public animationSet?: AnimationSet;
+
+    public createTimerWindow?: () => void;
 
     public loadConfig(filename: string): void {
         try {
@@ -22,7 +30,29 @@ export class Context {
             this.config = doc;
             console.log(this.config);
         } catch (e) {
-            console.log(e);
+            console.warn(e);
+        }
+    }
+
+    public loadAnimations(filenames: string[]): void {
+        try {
+            this.animationSets = (filenames
+                .map((filename) => {
+                    var anim: AnimationSet = safeLoad(
+                        fs.readFileSync(path.join(__dirname, filename), 'utf8')
+                    );
+                    return anim;
+                })
+            );
+            console.log(this.animationSets.length);
+            this.animationSet = (this.animationSets
+                .reduce((result, set) =>
+                    result.combine(set),
+                new AnimationSet()
+                )
+            );
+        } catch (e) {
+            console.warn(e);
         }
     }
 }

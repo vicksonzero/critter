@@ -1,0 +1,72 @@
+animations:
+  - name: idle
+    frames:
+      - frameID: 6
+        delay: 0
+
+  - name: sleep
+    frames:
+      - frameID: 0
+        delay: 1.5
+      - frameID: 1
+        delay: 2.2
+
+  - name: doze
+    frames:
+      - frameID: 31
+        delay: 0
+      - frameID: 32
+        delay: 0.5
+      - frameID: 33
+        delay: 0.5
+
+  - name: dozing
+    frames:
+      - frameID: 33
+        delay: 0
+
+  - name: doze_front
+    frames:
+      - frameID: 34
+        delay: 0
+      - frameID: 35
+        delay: 0.5
+      - frameID: 36
+        delay: 0.5
+
+  - name: yarn
+    frames:
+      - frameID: 37
+        delay: 0.5
+      - frameID: 38
+        delay: 0.5
+      - frameID: 39
+        delay: 0.5
+      - frameID: 38
+        delay: 0.5
+      - frameID: 39
+        delay: 0.5
+      - frameID: 37
+        delay: 0.5
+
+  - name: pat_pat
+    frames:
+      - frameID: 42
+        delay: 0.5
+      - frameID: 43
+        delay: 0.5
+      - frameID: 42
+        delay: 0.5
+      - frameID: 44
+        delay: 0.5
+
+  - name: amazed
+    frames:
+      - frameID: 50
+        delay: 0.3
+      - frameID: 51
+        delay: 0.3
+      - frameID: 50
+        delay: 0.3
+      - frameID: 51
+        delay: 0.3

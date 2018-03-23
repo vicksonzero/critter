@@ -1,84 +1,118 @@
-// Here is the starting point for your application code.
-// All stuff below is just to show you how it works. You can delete all of it.
+// This is main process of Electron, started as first thing when your
+// app starts. This script is running through entire life of your application.
+// It doesn't have any windows which you can see on screen, but we can open
+// window from here.
 
-// Use new ES6 modules syntax for everything.
 import * as path from 'path';
-import * as os from 'os'; // native node.js module
+import * as url from 'url';
 
-import { remote, ipcRenderer } from 'electron'; // native electron module
-const jetpack = require('fs-jetpack'); // module loaded from npm
-import { greet, time } from './hello_world/hello_world'; // code authored by you in this project
+import { app, Menu, Tray } from 'electron';
+import { BrowserWindow, MenuItemConstructorOptions } from 'electron';
+
+import * as fs from 'fs'; // module loaded from npm
+
+import { safeLoad, safeDump } from 'js-yaml';
+import { LoadOptions } from 'js-yaml';
+
+import { devMenuTemplateFactory } from './menu/dev_menu_template';
+import { editMenuTemplateFactory } from './menu/edit_menu_template';
+import { Context } from './Context';
+
+import createWindow from './helpers/window';
+
+// Special module holding environment variables which you declared
+// in config/env_xxx.json file.
 import env from './env';
-import moment from 'moment';
-import { SpriteSheet } from './SpriteSheet';
 
-import { scheduleJob } from 'node-schedule';
-import { Context } from "./Context";
+// windows need to be created globally
+let context = new Context();
+context.loadConfig('config/preference.yaml');
+context.loadAnimations(['config/esheep.yaml']);
 
-console.log('Loaded environment variables:', env);
-
-var app = remote.app;
-var appDir = jetpack.cwd(app.getAppPath());
-var context: Context;
-var spriteSheet = new SpriteSheet({
-  filename: './sprites/sheep.png',
-  rows: 11,
-  cols: 16,
-  frameWidth: 40,
-  frameHeight: 40,
-  spacingX: 0,
-  spacingY: 1,
-});
-window['spriteSheet'] = spriteSheet;
-
-// Holy crap! This is browser window with HTML and stuff, but I can read
-// here files like it is node.js! Welcome to Electron world :)
-console.log('The author of this app is:', appDir.read('package.json', 'json').author);
-
-document.addEventListener('DOMContentLoaded', function () {
-  document.body.appendChild(spriteSheet.createDiv('sheep', 2));
-  document.querySelector('#subtitle__edit').innerHTML = greet(context);
-  document.querySelector('#subtitle__edit').addEventListener('click', () => {
-    console.log('clicked');
-    document.querySelector('#subtitle__edit').innerHTML = greet(context);
-  });
-
-  // document.getElementById('subtitle').innerHTML = os.platform();
-  // document.getElementById('env-name').innerHTML = env.name;
-  initChime();
-  updateGreet();
-  updateFrame();
-});
-
-function updateGreet() {
-  document.querySelector('#clock').innerHTML = time();
-  // console.log('a');
-
-  setTimeout(() => updateGreet(), 0.5 * 1000);
-}
-var frames = [9, 10, 11, 10];
-var i = 0;
-function updateFrame() {
-  spriteSheet.setDivStyle(
-    <HTMLDivElement>document.querySelector('#sheep'),
-    frames[(i++) % frames.length]
-    // i
-  );
-  // i = (i + 1) % spriteSheet.keyCount;
-  // console.log('a');
-
-  setTimeout(() => updateFrame(), 2 * 1000);
+// Save userData in separate folders for each environment.
+// Thanks to this you can use production and development versions of the app
+// on same machine like those are two separate apps.
+if (env.name !== 'production') {
+    const userDataPath: string = app.getPath('userData');
+    app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
-function initChime() {
-  scheduleJob('0 * * * *', () => {
-    console.log('chime', moment().format('HH:mm:ss'));
+app.on('ready', function () {
+    context.mainWindow = createMainWindow(context);
+    if (env.name === 'development') {
+        context.mainWindow.webContents.openDevTools({ mode: 'detach' });
+    }
+    context.timerWindow = createTimerWindow(context);
 
-    document.getElementById('clock').className += ' clock--chime';
-  });
+    context.tray = new Tray(path.join(__dirname, 'sprites/exit.png'));
+
+    context.createTimerWindow = () => createTimerWindow(context);
+
+    const template = devMenuTemplateFactory(context);
+    context.tray.setContextMenu(Menu.buildFromTemplate([template]));
+    context.tray.setToolTip('critter');
+
+    setApplicationMenu(context);
+});
+
+app.on('window-all-closed', function () {
+    app.quit();
+});
+
+function setApplicationMenu(ctx: Context) {
+    const menus: MenuItemConstructorOptions[] = [];
+    menus.push(editMenuTemplateFactory(ctx));
+
+    if (env.name !== 'production') {
+        menus.push(devMenuTemplateFactory(ctx));
+    }
+    Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
+};
+
+function createMainWindow(ctx: Context): BrowserWindow {
+    var window = createWindow('main', {
+        width: 150,
+        height: 150,
+        transparent: true,
+        alwaysOnTop: true,
+        frame: false,
+        skipTaskbar: true,
+    });
+
+    window.loadURL(url.format({
+        pathname: path.join(__dirname, 'index.html'),
+        protocol: 'file:',
+        slashes: true,
+    }));
+
+    window.webContents.on('dom-ready', () => {
+        window.webContents.send('context', ctx);
+    });
+
+    return window;
 }
 
-ipcRenderer.on('context', (sender: any, ctx: Context) => {
-  console.log('context', ctx);
-  context = ctx;
-});
+function createTimerWindow(context: Context): BrowserWindow {
+    var window = createWindow('timer', {
+        width: 150,
+        height: 150,
+        transparent: false,
+        alwaysOnTop: true,
+        frame: true,
+        skipTaskbar: false,
+    });
+
+    setApplicationMenu(context);
+
+    window.loadURL(url.format({
+        pathname: path.join(__dirname, 'timer.html'),
+        protocol: 'file:',
+        slashes: true,
+    }));
+
+    window.webContents.on('dom-ready', () => {
+        window.webContents.send('context', context);
+    });
+
+    return window;
+}

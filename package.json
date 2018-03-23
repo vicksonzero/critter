@@ -6,7 +6,7 @@
   "author": "Dickson Chui (vicksonzero)",
   "homepage": "http://example.com",
   "license": "MIT",
-  "main": "app/background.js",
+  "main": "app/app.js",
   "build": {
     "appId": "com.example.electron-boilerplate",
     "files": [

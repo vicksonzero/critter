@@ -1,4 +1,4 @@
-export class SpriteSheet implements SpriteSheetOptions {
+export class SpriteSheet implements IProps {
     public filename: string = '';
     public rows: number = 0;
     public cols: number = 0;
@@ -14,7 +14,7 @@ export class SpriteSheet implements SpriteSheetOptions {
 
     public keyList: { [x: string]: ISpriteFrame };
 
-    constructor(opts: SpriteSheetOptions) {
+    constructor(opts: IProps) {
         Object.assign(this, opts);
         this._keyCount = this.rows * this.cols;
     }
@@ -40,6 +40,9 @@ export class SpriteSheet implements SpriteSheetOptions {
         div.style.backgroundPositionY = `${coord.y}px`;
         div.style.width = `${this.frameWidth}px`;
         div.style.height = `${this.frameHeight}px`;
+        // div.style.transform = (
+        //     Math.random() > 0.5 ? 'scaleX(1)' : 'scaleX(-1)'
+        // );
     }
 
     public createDiv(name: string, idOrKey: number | string): HTMLDivElement {
@@ -65,7 +68,7 @@ export interface Point {
     y: number;
 }
 
-export interface SpriteSheetOptions {
+export interface IProps {
     filename: string,
     rows: number,
     cols: number,
