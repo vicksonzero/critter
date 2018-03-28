@@ -21,23 +21,31 @@ gulp.task('bundle', function () {
     return Promise.all([
         bundle(distDir.path('app.js'), destDir.path('app.js')),
         bundle(distDir.path('mainRenderer.js'), destDir.path('mainRenderer.js')),
+        bundle(distDir.path('timerRenderer.js'), destDir.path('timerRenderer.js')),
+        
     ]);
 });
 
 var tsProject = ts.createProject('tsconfig.json');
 
-gulp.task('ts', function() {
+gulp.task('ts', function () {
     var tsResult = gulp.src('src/**/*.ts')
         .pipe(tsProject());
- 
+
     return tsResult.js.pipe(gulp.dest('dist'));
 });
 
 gulp.task('less', function () {
-    return gulp.src(srcDir.path('stylesheets/main.less'))
-        .pipe(plumber())
-        .pipe(less())
-        .pipe(gulp.dest(destDir.path('stylesheets')));
+    return Promise.all([
+        gulp.src(srcDir.path('stylesheets/main.less'))
+            .pipe(plumber())
+            .pipe(less())
+            .pipe(gulp.dest(destDir.path('stylesheets'))),
+        gulp.src(srcDir.path('stylesheets/timer.less'))
+            .pipe(plumber())
+            .pipe(less())
+            .pipe(gulp.dest(destDir.path('stylesheets')))
+    ]);
 });
 
 gulp.task('environment', function () {
@@ -63,6 +71,6 @@ gulp.task('watch', function () {
     }));
 });
 
-gulp.task('build', function(callback){
+gulp.task('build', function (callback) {
     runsequence('ts', 'bundle', 'less', 'environment', callback)
 });

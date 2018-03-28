@@ -1,0 +1,49 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    -webkit-margin-before: 0;
+    -webkit-margin-after: 0;
+}
+
+@time-margin: 80px;
+
+div.container{
+    height: 100%;
+    padding: 2px;
+}
+div.clock-container{
+    h1{
+        margin: 6px;
+        margin-left: 0;
+    }
+}
+div.timeline{
+    position: relative;
+    margin-left: @time-margin;
+    border-left: red solid 2px;
+    box-sizing: border-box;
+    height: 100%;
+    // overflow-y: hidden;
+    section{
+        position: absolute;
+        background-color: rgba(199, 209, 148, 0.72);
+        div.time{
+            margin: 2px;
+            margin-left: 0;
+            display: block;
+            position: absolute;
+            left: -@time-margin;
+            top: 0;
+        }
+        h3{
+            margin: 2px;
+            display: inline-block;
+        }
+    }
+    .hidden-time-event{
+        display: none;
+    }
+}

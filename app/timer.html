@@ -10,16 +10,39 @@
     <script src="helpers/context_menu.js"></script>
     <script src="helpers/external_links.js"></script>
 
-    <script src="renderer.js"></script>
+    <script src="timerRenderer.js"></script>
 </head>
 
 <body>
 
-    <div class="container title-bar">
+    <div class="container">
+        <div class="clock-container">
+            <h1 id="clock"></h1>
+        </div>
         <div class="timeline">
-            <section>
-                
+            <!-- <section style="top: 0px;">
+                <div class="time">00:00:00</div>
+                <h3>aaa</h3>
             </section>
+            <section style="top: 10px;">
+                <div class="time">00:00:00</div>
+                <h3>ccc</h3>
+            </section>
+            <section style="top: 50px;">
+                <div class="time">00:00:00</div>
+                <h3>eee</h3>
+            </section> -->
+        </div>
+        <div id="timerEventComponentTemplate" style="display:none;">
+            <section style="top: 0px;">
+                <div class="time">00:00:00</div>
+                <h3>title</h3>
+            </section>
+        </div>
+        <div class="input-times">
+            <textarea name="input-times-textbox" id="" cols="17" rows="4"></textarea>
+            <br />
+            <button onclick="applyTimes">Apply</button>
         </div>
     </div>
 

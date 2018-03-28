@@ -15,19 +15,132 @@ import { SpriteSheet } from './SpriteSheet';
 
 import { scheduleJob } from 'node-schedule';
 import { Context } from "./Context";
+import { TimerContext } from "./TimerContext";
+import { TimerEvent } from "./timer/TimerEvent";
 
 console.log('Loaded environment variables:', env);
 
 window['moment'] = moment;
-var app = remote.app;
-var appDir = jetpack.cwd(app.getAppPath());
-var context: Context;
-document.addEventListener('DOMContentLoaded', function () {
+let app = remote.app;
+let appDir = jetpack.cwd(app.getAppPath());
+let context: Context;
+let timerContext: TimerContext;
 
+
+document.addEventListener('DOMContentLoaded', function () {
+    timerContext = new TimerContext();
+    window['parseTimerString'] = parseTimerString;
+    window['timerContext'] = timerContext;
+    window['createEventComponent'] = createEventComponent;
+
+    const newNodes = (parseTimerString(timerContext.timerString)
+        .map(createEventComponent)
+    );
+    const timeline = document.querySelector('.timeline');
+
+    newNodes.sort((a, b) => {
+        const aEvent = TimerEvent.fromString(a.dataset.timerEvent);
+        const bEvent = TimerEvent.fromString(b.dataset.timerEvent);
+        const isAfter = moment(aEvent.time, 'HH:mm:ss').isAfter(moment(bEvent.time, 'HH:mm:ss'));
+        return isAfter ? 1 : -1;
+    });
+
+    newNodes.forEach((elem, i) => {
+        elem.style.top = `${20 * i}px`;
+        timeline.appendChild(elem);
+    });
+
+    updateTime();
+    updateTimerEvents();
 });
 
 ipcRenderer.on('context', (sender: any, ctx: Context) => {
-  console.log('context', ctx);
-  context = ctx;
+    console.log('context', ctx);
+    context = ctx;
 });
 
+function updateTime() {
+    document.querySelector('#clock').innerHTML = time();
+
+    setTimeout(function () { return updateTime(); }, 0.5 * 1000);
+}
+
+function updateTimerEvents() {
+    const shownEvents = 3;
+    const timelineHeight = 100;
+    const timeline = document.querySelector('div.timeline') as HTMLDivElement;
+    const doneEventCount = removeDoneEvents(timeline);
+    if (doneEventCount > 0) console.log('doneEventCount: ', doneEventCount);
+
+    const children = (<HTMLElement[]>Array.from(timeline.children));
+
+    const lastTimerEvent = TimerEvent.fromString(children[shownEvents - 1].dataset.timerEvent);
+    const lastMoment = moment(lastTimerEvent.time, 'HH:mm:ss');
+    const totalProgress = lastMoment.diff(moment());
+
+    let lastY = -20;
+    children.forEach((section, i) => {
+        if (i >= shownEvents) {
+            section.classList.add('hidden-time-event');
+            return;
+        }
+        section.classList.remove('hidden-time-event');
+        const timerEvent = TimerEvent.fromString(section.dataset.timerEvent);
+        const sectionMoment = moment(timerEvent.time, 'HH:mm:ss');
+        const progress = lastMoment.diff(sectionMoment);
+        const progressPercent = 1 - (progress / totalProgress);
+        // console.log('progressPercent', i, progressPercent);
+        let y = ease(progressPercent) * timelineHeight;
+        for (let i = 0; y < lastY + 20 && i < 10; i++) y += 20;
+        section.style.top = `${y}px`;
+        lastY = y;
+
+        (<HTMLElement>section.querySelector('.time')).innerText = moment.duration(sectionMoment.diff(moment())).humanize();
+    });
+
+    setTimeout(function () { return updateTimerEvents(); }, 0.5 * 1000);
+}
+
+function removeDoneEvents(timeline: HTMLDivElement) {
+    const children = (<HTMLElement[]>Array.from(timeline.children));
+    const doneList = (children
+        .filter((section) => {
+            const timerEvent = TimerEvent.fromString(section.dataset.timerEvent);
+            return moment(timerEvent.time, 'HH:mm:ss').isBefore();
+        })
+    );
+    doneList.forEach((section) => timeline.removeChild(section))
+    return doneList.length;
+}
+
+function parseTimerString(str: string) {
+    const lines = str.match(/[^\r\n]+/g);
+    // console.log('lines', lines);
+
+    const events: TimerEvent[] = lines.map((line, i) => {
+        const tokens = line.match(/\s*(\d{2}:\d{2}:\d{2})\s*?(.*?)\s*/g);
+        // console.log('tokens', i, tokens);
+
+        return new TimerEvent(tokens[0], tokens[1] || '');
+    });
+
+    return events;
+}
+
+function createEventComponent(event: TimerEvent): HTMLElement {
+    const template = document.querySelector('#timerEventComponentTemplate').children[0];
+    const result = template.cloneNode(true) as HTMLElement;
+
+    let title = event.title;
+    if (title === '') title = event.time;
+
+    (<HTMLElement>result.querySelector('.time')).innerText = event.time;
+    (<HTMLElement>result.querySelector('h3')).innerText = title;
+
+    result.dataset.timerEvent = JSON.stringify(event.toJSON());
+    return result;
+}
+
+function ease(t) {
+    return (--t) * t * t + 1;
+}

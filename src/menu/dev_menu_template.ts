@@ -14,22 +14,26 @@ export function devMenuTemplateFactory(ctx: Context): MenuItemConstOptions {
                 label: 'Reload',
                 accelerator: 'CmdOrCtrl+R',
                 click: () => {
-                    mainWindow.webContents.reloadIgnoringCache();
+                    var window = BrowserWindow.getFocusedWindow();
+                    if (!window) window = mainWindow;
+                    window.webContents.reloadIgnoringCache();
                 }
             },
             {
                 label: 'Open DevTools',
                 accelerator: 'Alt+CmdOrCtrl+I',
                 click: () => {
-                    if (!mainWindow.webContents.isDevToolsOpened()) {
-                        mainWindow.webContents.openDevTools({ mode: 'detach' });
+                    var window = BrowserWindow.getFocusedWindow();
+                    if (!window) window = mainWindow;
+                    if (!window.webContents.isDevToolsOpened()) {
+                        window.webContents.openDevTools({ mode: 'detach' });
                     } else {
-                        mainWindow.webContents.closeDevTools();
+                        window.webContents.closeDevTools();
                     }
                 }
             },
             {
-                label: 'Quit',
+                label: 'Quit App',
                 accelerator: 'CmdOrCtrl+Q',
                 click: () => {
                     app.quit();
