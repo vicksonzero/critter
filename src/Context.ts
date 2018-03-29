@@ -22,6 +22,7 @@ export class Context {
     public animationSets?: AnimationSet[];
     public animationSet?: AnimationSet;
 
+    public createCritterWindow?: () => void;
     public createTimerWindow?: () => void;
 
     public loadConfig(filename: string): void {

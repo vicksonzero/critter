@@ -38,18 +38,31 @@ if (env.name !== 'production') {
 }
 
 app.on('ready', function () {
-    context.mainWindow = createMainWindow(context);
-    if (env.name === 'development') {
-        context.mainWindow.webContents.openDevTools({ mode: 'detach' });
-    }
-    context.timerWindow = createTimerWindow(context);
+    createMainWindow(context);
+    // if (env.name === 'development') {
+    //     context.mainWindow.webContents.openDevTools({ mode: 'detach' });
+    // }
+    // context.timerWindow = createTimerWindow(context);
 
     context.tray = new Tray(path.join(__dirname, 'sprites/exit.png'));
 
-    context.createTimerWindow = () => createTimerWindow(context);
+    context.createCritterWindow = () => { createMainWindow(context) };
+    context.createTimerWindow = () => { createTimerWindow(context) };
 
-    const template = devMenuTemplateFactory(context);
-    context.tray.setContextMenu(Menu.buildFromTemplate([template]));
+    const template = [
+        {
+            label: 'Open Critter',
+            // accelerator: 'Alt+CmdOrCtrl+I',
+            click: () => { context.createCritterWindow(); }
+        },
+        {
+            label: 'Open Timer',
+            // accelerator: 'Alt+CmdOrCtrl+I',
+            click: () => { context.createTimerWindow(); }
+        },
+        devMenuTemplateFactory(context)
+    ];
+    context.tray.setContextMenu(Menu.buildFromTemplate(template));
     context.tray.setToolTip('critter');
 
     setApplicationMenu(context);
@@ -77,6 +90,7 @@ function createMainWindow(ctx: Context): BrowserWindow {
         alwaysOnTop: true,
         frame: false,
         skipTaskbar: true,
+        resizable: false,
     });
 
     window.loadURL(url.format({
@@ -89,20 +103,23 @@ function createMainWindow(ctx: Context): BrowserWindow {
         window.webContents.send('context', ctx);
     });
 
+    ctx.mainWindow = window;
+
     return window;
 }
 
-function createTimerWindow(context: Context): BrowserWindow {
+function createTimerWindow(ctx: Context): BrowserWindow {
     var window = createWindow('timer', {
-        width: 150,
-        height: 150,
+        width: 200,
+        height: 300,
         transparent: false,
         alwaysOnTop: true,
-        frame: true,
-        skipTaskbar: false,
+        frame: false,
+        skipTaskbar: true,
+        resizable: true,
     });
 
-    setApplicationMenu(context);
+    setApplicationMenu(ctx);
 
     window.loadURL(url.format({
         pathname: path.join(__dirname, 'timer.html'),
@@ -111,8 +128,10 @@ function createTimerWindow(context: Context): BrowserWindow {
     }));
 
     window.webContents.on('dom-ready', () => {
-        window.webContents.send('context', context);
+        window.webContents.send('context', ctx);
     });
 
+    ctx.timerWindow = window;
+    
     return window;
 }

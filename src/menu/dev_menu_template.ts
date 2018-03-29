@@ -5,11 +5,11 @@ export function devMenuTemplateFactory(ctx: Context): MenuItemConstOptions {
     return {
         label: 'Development',
         submenu: [
-            {
-                label: 'Open Timer',
-                // accelerator: 'Alt+CmdOrCtrl+I',
-                click: () => { ctx.createTimerWindow(); }
-            },
+            // {
+            //     label: 'Open Timer',
+            //     // accelerator: 'Alt+CmdOrCtrl+I',
+            //     click: () => { ctx.createTimerWindow(); }
+            // },
             {
                 label: 'Reload',
                 accelerator: 'CmdOrCtrl+R',

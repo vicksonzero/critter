@@ -32,26 +32,11 @@ document.addEventListener('DOMContentLoaded', function () {
     window['parseTimerString'] = parseTimerString;
     window['timerContext'] = timerContext;
     window['createEventComponent'] = createEventComponent;
+    window['applyTimes'] = applyTimes;
 
-    const newNodes = (parseTimerString(timerContext.timerString)
-        .map(createEventComponent)
-    );
-    const timeline = document.querySelector('.timeline');
-
-    newNodes.sort((a, b) => {
-        const aEvent = TimerEvent.fromString(a.dataset.timerEvent);
-        const bEvent = TimerEvent.fromString(b.dataset.timerEvent);
-        const isAfter = moment(aEvent.time, 'HH:mm:ss').isAfter(moment(bEvent.time, 'HH:mm:ss'));
-        return isAfter ? 1 : -1;
-    });
-
-    newNodes.forEach((elem, i) => {
-        elem.style.top = `${20 * i}px`;
-        timeline.appendChild(elem);
-    });
+    constructTimeline();
 
     updateTime();
-    updateTimerEvents();
 });
 
 ipcRenderer.on('context', (sender: any, ctx: Context) => {
@@ -59,46 +44,57 @@ ipcRenderer.on('context', (sender: any, ctx: Context) => {
     context = ctx;
 });
 
+function applyTimes() {
+
+    timerContext.timerString = (<HTMLTextAreaElement>document.querySelector('#input-times-textbox')).value;
+    clearTimeline();
+    constructTimeline();
+}
+
 function updateTime() {
     document.querySelector('#clock').innerHTML = time();
+    updateTimerEvents();
 
     setTimeout(function () { return updateTime(); }, 0.5 * 1000);
 }
 
 function updateTimerEvents() {
     const shownEvents = 3;
-    const timelineHeight = 100;
+    const timelineHeight = 90;
     const timeline = document.querySelector('div.timeline') as HTMLDivElement;
     const doneEventCount = removeDoneEvents(timeline);
     if (doneEventCount > 0) console.log('doneEventCount: ', doneEventCount);
 
-    const children = (<HTMLElement[]>Array.from(timeline.children));
+    const children = (<HTMLElement[]>Array.from(timeline.querySelectorAll('section')));
 
-    const lastTimerEvent = TimerEvent.fromString(children[shownEvents - 1].dataset.timerEvent);
-    const lastMoment = moment(lastTimerEvent.time, 'HH:mm:ss');
-    const totalProgress = lastMoment.diff(moment());
+    if (children.length > 0) {
+        const lastIndex = Math.min(shownEvents - 1, children.length - 1);
+        const lastTimerEvent = TimerEvent.fromString(children[lastIndex].dataset.timerEvent);
+        const lastMoment = moment(lastTimerEvent.time, 'HH:mm:ss');
+        const totalProgress = lastMoment.diff(moment());
 
-    let lastY = -20;
-    children.forEach((section, i) => {
-        if (i >= shownEvents) {
-            section.classList.add('hidden-time-event');
-            return;
-        }
-        section.classList.remove('hidden-time-event');
-        const timerEvent = TimerEvent.fromString(section.dataset.timerEvent);
-        const sectionMoment = moment(timerEvent.time, 'HH:mm:ss');
-        const progress = lastMoment.diff(sectionMoment);
-        const progressPercent = 1 - (progress / totalProgress);
-        // console.log('progressPercent', i, progressPercent);
-        let y = ease(progressPercent) * timelineHeight;
-        for (let i = 0; y < lastY + 20 && i < 10; i++) y += 20;
-        section.style.top = `${y}px`;
-        lastY = y;
+        let lastY = -20;
+        children.forEach((section, i) => {
+            if (i >= shownEvents) {
+                section.classList.add('hidden-time-event');
+                return;
+            }
+            section.classList.remove('hidden-time-event');
+            const timerEvent = TimerEvent.fromString(section.dataset.timerEvent);
+            const sectionMoment = moment(timerEvent.time, 'HH:mm:ss');
+            const progress = lastMoment.diff(sectionMoment);
+            const progressPercent = 1 - (progress / totalProgress);
+            // console.log('progressPercent', i, progressPercent);
+            let y = ease(progressPercent) * timelineHeight;
+            for (let i = 0; y < lastY + 20 && i < 10; i++) y += 20;
+            section.style.top = `${y}px`;
+            lastY = y;
 
-        (<HTMLElement>section.querySelector('.time')).innerText = moment.duration(sectionMoment.diff(moment())).humanize();
-    });
-
-    setTimeout(function () { return updateTimerEvents(); }, 0.5 * 1000);
+            const duration = moment.duration(sectionMoment.diff(moment()));
+            (<HTMLElement>section.querySelector('.time')).innerText = humanize(duration);
+        });
+    }
+    // setTimeout(function () { return updateTimerEvents(); }, 0.5 * 1000);
 }
 
 function removeDoneEvents(timeline: HTMLDivElement) {
@@ -113,15 +109,52 @@ function removeDoneEvents(timeline: HTMLDivElement) {
     return doneList.length;
 }
 
+
+function clearTimeline() {
+    const timeline = document.querySelector('.timeline');
+    const children = (<HTMLElement[]>Array.from(timeline.children));
+    children.forEach((section) => {
+        section.dataset.timerEvent = '';
+        timeline.removeChild(section);
+    })
+    timeline.innerHTML = '';
+}
+
+function constructTimeline() {
+    const timeline = document.querySelector('.timeline');
+    const a = parseTimerString(timerContext.timerString);
+    if (!a) return;
+    const newNodes = (a
+        .map(createEventComponent)
+    );
+
+    newNodes.sort((a, b) => {
+        const aEvent = TimerEvent.fromString(a.dataset.timerEvent);
+        const bEvent = TimerEvent.fromString(b.dataset.timerEvent);
+        const isAfter = moment(aEvent.time, 'HH:mm:ss').isAfter(moment(bEvent.time, 'HH:mm:ss'));
+        return isAfter ? 1 : -1;
+    });
+
+    newNodes.forEach((elem, i) => {
+        elem.style.top = `${20 * i}px`;
+        timeline.appendChild(elem);
+    });
+}
+
 function parseTimerString(str: string) {
     const lines = str.match(/[^\r\n]+/g);
     // console.log('lines', lines);
-
+    if (!lines) return;
     const events: TimerEvent[] = lines.map((line, i) => {
-        const tokens = line.match(/\s*(\d{2}:\d{2}:\d{2})\s*?(.*?)\s*/g);
+        const tokens = line.match(/\s*(\d{2}:\d{2}:\d{2})(.*)/);
         // console.log('tokens', i, tokens);
+        const time = tokens[1];
+        let title = tokens[2] || '';
+        if (title !== '') {
+            title = title.trim();
+        }
 
-        return new TimerEvent(tokens[0], tokens[1] || '');
+        return new TimerEvent(time, title);
     });
 
     return events;
@@ -142,5 +175,18 @@ function createEventComponent(event: TimerEvent): HTMLElement {
 }
 
 function ease(t) {
-    return (--t) * t * t + 1;
+    // easeOutQuart
+    return 1 - (--t) * t * t * t;
+}
+
+function humanize(duration: moment.Duration): string {
+    if (duration.years() > 0) return `>${duration.years()} years`;
+    if (duration.months() > 0) return `>${duration.months()} months`;
+    if (duration.days() > 0) return `>${duration.days()} days`;
+    if (duration.hours() > 0) return `>${duration.hours()} hours`;
+    if (duration.minutes() > 0) {
+        if (duration.minutes() > 10) return `${duration.minutes()} minutes`;
+        return `${duration.minutes()}min ${duration.seconds()}sec`;
+    }
+    return `${duration.seconds()} seconds`;
 }
