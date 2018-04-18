@@ -13,6 +13,7 @@ export interface Preference {
 
 export class Context {
 
+    public lastFocusedWindow?: BrowserWindow;
     public mainWindow?: BrowserWindow;
     public timerWindow?: BrowserWindow;
 
@@ -24,6 +25,8 @@ export class Context {
 
     public createCritterWindow?: () => void;
     public createTimerWindow?: () => void;
+    public createTimerWindowWithFrame?: () => void;
+    
 
     public loadConfig(filename: string): void {
         try {

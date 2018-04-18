@@ -17,8 +17,9 @@ html, body {
     -webkit-app-region: drag;
 }
 
-@time-margin: 60px;
-@timeline-height: 120px;
+@time-margin: 70px;
+@timeline-height: 150px;
+@timeline-dot-radius: 4px;
 
 div.container{
     height: 100%;
@@ -39,11 +40,11 @@ div.clock-container{
 div.timeline{
     position: relative;
     margin-left: @time-margin;
-    border-left: rgba(198, 29, 35, 0.5) solid 3px;
+    border-left: rgba(198, 29, 35, 0.5) solid 4px;
     box-sizing: border-box;
     height: @timeline-height;
     // overflow-y: hidden;
-    section{
+    section.timerEventLabel{
         position: absolute;
         background-color: rgba(242, 166, 168, 0.29);
         div.time{
@@ -59,6 +60,19 @@ div.timeline{
             display: inline-block;
         }
     }
+    
+    div.timerEventDot{
+        position: absolute;
+        box-sizing: border-box;
+        width: @timeline-dot-radius * 2;
+        height: @timeline-dot-radius * 2;
+        margin-left: -@timeline-dot-radius - 2;
+        margin-top: -@timeline-dot-radius;
+        border-radius: @timeline-dot-radius;
+        border: rgb(198, 29, 35) solid 1px;
+        background-color: rgb(255, 255, 255);
+    }
+
     .hidden-time-event{
         display: none;
     }

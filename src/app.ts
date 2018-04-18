@@ -47,7 +47,8 @@ app.on('ready', function () {
     context.tray = new Tray(path.join(__dirname, 'sprites/exit.png'));
 
     context.createCritterWindow = () => { createMainWindow(context) };
-    context.createTimerWindow = () => { createTimerWindow(context) };
+    context.createTimerWindow = () => { createTimerWindow(context, false) };
+    context.createTimerWindowWithFrame = () => { createTimerWindow(context, true) };
 
     const template = [
         {
@@ -59,6 +60,11 @@ app.on('ready', function () {
             label: 'Open Timer',
             // accelerator: 'Alt+CmdOrCtrl+I',
             click: () => { context.createTimerWindow(); }
+        },
+        {
+            label: 'Open Timer with frame',
+            // accelerator: 'Alt+CmdOrCtrl+I',
+            click: () => { context.createTimerWindowWithFrame(); }
         },
         devMenuTemplateFactory(context)
     ];
@@ -104,17 +110,18 @@ function createMainWindow(ctx: Context): BrowserWindow {
     });
 
     ctx.mainWindow = window;
+    ctx.lastFocusedWindow = window;
 
     return window;
 }
 
-function createTimerWindow(ctx: Context): BrowserWindow {
+function createTimerWindow(ctx: Context, withFrame: boolean): BrowserWindow {
     var window = createWindow('timer', {
         width: 200,
         height: 300,
         transparent: false,
         alwaysOnTop: true,
-        frame: false,
+        frame: withFrame,
         skipTaskbar: true,
         resizable: true,
     });
@@ -132,6 +139,7 @@ function createTimerWindow(ctx: Context): BrowserWindow {
     });
 
     ctx.timerWindow = window;
-    
+    ctx.lastFocusedWindow = window;
+
     return window;
 }

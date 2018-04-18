@@ -1,7 +1,7 @@
 import { app, BrowserWindow, MenuItemConstructorOptions as MenuItemConstOptions } from 'electron';
 import { Context } from '../Context';
 export function devMenuTemplateFactory(ctx: Context): MenuItemConstOptions {
-    const { mainWindow } = ctx;
+    const { lastFocusedWindow } = ctx;
     return {
         label: 'Development',
         submenu: [
@@ -15,7 +15,8 @@ export function devMenuTemplateFactory(ctx: Context): MenuItemConstOptions {
                 accelerator: 'CmdOrCtrl+R',
                 click: () => {
                     var window = BrowserWindow.getFocusedWindow();
-                    if (!window) window = mainWindow;
+                    if (!window) window = lastFocusedWindow;
+                    if (!window) return;
                     window.webContents.reloadIgnoringCache();
                 }
             },
@@ -24,7 +25,8 @@ export function devMenuTemplateFactory(ctx: Context): MenuItemConstOptions {
                 accelerator: 'Alt+CmdOrCtrl+I',
                 click: () => {
                     var window = BrowserWindow.getFocusedWindow();
-                    if (!window) window = mainWindow;
+                    if (!window) window = lastFocusedWindow;
+                    if (!window) return;
                     if (!window.webContents.isDevToolsOpened()) {
                         window.webContents.openDevTools({ mode: 'detach' });
                     } else {
