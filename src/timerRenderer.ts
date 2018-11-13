@@ -17,6 +17,7 @@ import { scheduleJob } from 'node-schedule';
 import { Context } from "./Context";
 import { TimerContext } from "./TimerContext";
 import { TimerEvent } from "./timer/TimerEvent";
+import { chimeAudioString } from './soundStrings';
 
 console.log('Loaded environment variables:', env);
 
@@ -43,8 +44,18 @@ const shownDuration = moment.duration({ minutes: 30 });
 //     years: 2
 // });
 
+let chimeAudio = null;
+
+
 
 document.addEventListener('DOMContentLoaded', function () {
+    chimeAudio = new Audio("data:audio/wav;base64," + chimeAudioString);
+    document.body.appendChild(chimeAudio);
+    if (chimeAudio) chimeAudio.play();
+
+    // setTimeout(() => {
+    //     if (chimeAudio) chimeAudio.play();
+    // }, 5000);
     timerContext = new TimerContext();
     window['parseTimerString'] = parseTimerString;
     window['timerContext'] = timerContext;
@@ -82,7 +93,10 @@ function updateTimerEvents() {
     const timeline = document.querySelector('div.timeline') as HTMLDivElement;
     const doneEventCount = removeDoneEvents(timeline);
 
-    if (doneEventCount > 0) console.log('doneEventCount: ', doneEventCount);
+    if (doneEventCount > 0) {
+        console.log('doneEventCount: ', doneEventCount);
+        if (chimeAudio) chimeAudio.play();
+    }
 
     const timerEventLabels = (<HTMLElement[]>Array.from(timeline.querySelectorAll('section.timerEventLabel')));
     const knobs = (<HTMLElement[]>Array.from(timeline.querySelectorAll('div.timerEventDot')));
@@ -118,10 +132,10 @@ function updateTimerEvents() {
             let y = (progressPercent) * timelineHeight;
 
             knobs[i].style.top = `${Math.floor(y)}px`;
-            console.log(
-                `(${progress} / ${totalProgress}, ${progressPercent * 100}%)`,
-                `knobs[i].style.top = ${Math.floor(y)}px`
-            );
+            // console.log(
+            //     `(${progress} / ${totalProgress}, ${progressPercent * 100}%)`,
+            //     `knobs[i].style.top = ${Math.floor(y)}px`
+            // );
             // console.log('hi');
 
             knobs[i].classList.remove('hidden-time-event');

@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@types/js-yaml": "^3.10.1",
-    "@types/moment": "^2.18.1",
+    "@types/moment": "^2.16.0",
     "@types/node-schedule": "^1.2.2",
     "fs-jetpack": "^0.10.2",
     "js-yaml": "^3.10.0",
