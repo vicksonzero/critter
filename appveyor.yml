@@ -4,7 +4,7 @@ os: unstable
 
 branches:
   only:
-    - master
+   - master
 
 skip_tags: true
 
