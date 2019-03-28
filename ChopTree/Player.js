@@ -1,4 +1,6 @@
 const { indent } = require('./Utils');
+const { wood } = require('./Items');
+
 module.exports = class Player {
     constructor(game, input) {
         this.game = game;
@@ -27,9 +29,10 @@ module.exports = class Player {
     }
 
     desc() {
-        return `` +
+        return `Player\n` +
             `name: ${this.name}\n` +
             `health: ${this.health.desc()} hunger: ${this.hunger.desc()} mood: ${this.mood.desc()}\n` +
+            `action: ${this.action}\n` +
             `inventory: \n` +
             `${indent(this.inventory.desc(), ' ', 2)}\n` +
             ``;

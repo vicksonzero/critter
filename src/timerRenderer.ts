@@ -10,7 +10,9 @@ import { remote, ipcRenderer } from 'electron'; // native electron module
 const jetpack = require('fs-jetpack'); // module loaded from npm
 import { greet, time } from './hello_world/hello_world'; // code authored by you in this project
 import env from './env';
-import moment from 'moment';
+import * as _moment from 'moment';
+
+const moment = _moment;
 import { SpriteSheet } from './SpriteSheet';
 
 import { scheduleJob } from 'node-schedule';
@@ -269,7 +271,7 @@ function ease(t) {
     return 1 - (--t) * t * t * t;
 }
 
-function humanize(duration: moment.Duration): string {
+function humanize(duration: _moment.Duration): string {
     if (duration.years() > 0) return `>${duration.years()} years`;
     if (duration.months() > 0) return `>${duration.months()} months`;
     if (duration.days() > 0) return `>${duration.days()} days`;

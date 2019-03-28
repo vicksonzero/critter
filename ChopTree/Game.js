@@ -4,6 +4,8 @@ const moment = require('moment');
 
 // my stuff
 const Player = require('./Player');
+const { Tree } = require('./Tree');
+const { Room } = require('./Room');
 
 // init modules
 
@@ -19,19 +21,23 @@ class Game {
          * @type Input
          */
         this.input = input;
-        this.player = null;
         this.modules = {};
+
+        this.player = null;
+        this.room = null;
     }
     init() {
         this.modules['ChopTree'] = new ChopTree(this, this.input);
         this.input.onLineReceived.add((evt) => {
             const { input } = evt;
             if (input === 'help') {
-                this.input.render(`chop desc help`);
+                this.input.render(`chop desc room help`);
             }
             if (input === 'desc') {
-                this.input.render(`Description of Player`);
                 this.input.render(this.player.desc());
+            }
+            if (input === 'room') {
+                this.input.render(this.room.desc());
             }
             if (input === 'chop') {
                 this.input.render(`Player start chopping`);
@@ -41,23 +47,31 @@ class Game {
         this.input.init();
     }
     setUpStage() {
+        this.room = new Room(this, this.input);
         this.player = new Player(this, this.input);
+        this.room.add(new Tree(this, this.input));
     }
     start() {
         this.setUpStage();
         const chalkDebug = this.input.chalkDebug;
         schedule.scheduleJob('0 * * * * *', (fireDate) => {
-            this.input.render(chalkDebug(`/Minute tick ${getTime()}`));
+            // this.input.render(chalkDebug(`/Minute tick ${getTime()}`));
         });
         schedule.scheduleJob('0 /30 * * * *', (fireDate) => {
-            this.input.render(chalkDebug(`/Half-hour tick ${getTime()}`));
+            // this.input.render(chalkDebug(`/Half-hour tick ${getTime()}`));
 
             this.player.updateState();
         });
         schedule.scheduleJob('10,20,30,40,50,0 * * * * *', (fireDate) => {
-            this.input.render(chalkDebug(`/10s tick ${getTime()}`));
+            // this.input.render(chalkDebug(`/10s tick ${getTime()}`));
             if (this.player.action === 'chop') {
-                this.modules['ChopTree'].tryChopTree(this.player);
+                const tree = this.room.getEntityByType('tree');
+                if (tree) {
+                    this.modules['ChopTree'].tryChopTree(this.player, tree);
+                } else {
+                    this.input.render(`No tree to chop`);
+                    this.player.action = '';
+                }
             }
         });
 
@@ -75,15 +89,32 @@ class ChopTree {
         this.chance = 0.8;
     }
 
-    tryChopTree(player) {
-        const diceDraw = Math.random();
-        if (diceDraw <= this.chance) {
-            // success
-            this.input.render(`${player.name} chops a tree and collect 1 piece of wood`);
-            player.inventory.add('wood', 1);
-        } else {
-            // fail
-            this.input.render(`${player.name} swings at a tree but no wood come out`);
+    tryChopTree(player, tree) {
+        // before chop
+        if (player.inventory.get('wood') >= 100) {
+            this.input.render(`${player.name}'s bag is full of wood.`);
+        }
+        if (tree.durability <= 0) {
+            this.input.render(`${tree.name} is already fell`);
+            player.action = '';
+            return;
+        }
+
+        // chop
+        const items = tree.chop(1);
+        items.forEach(({ item, amount, actionDesc }) => {
+            this.input.render(actionDesc.replace('%p', player.name));
+            player.inventory.add(item, amount);
+        })
+
+        // after chop
+        if (player.inventory.get('wood') >= 100) {
+            this.input.render(`${player.name}'s bag is full of wood.`);
+            player.action = '';
+        }
+        if (tree.durability <= 0) {
+            this.input.render(`${tree.name} falls down with a big splash`);
+            player.action = '';
         }
     }
 }

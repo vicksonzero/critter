@@ -1,21 +1,20 @@
 (function () {'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 var electron = require('electron');
-var moment = _interopDefault(require('moment'));
+var _moment = require('moment');
 var nodeSchedule = require('node-schedule');
 
+var moment$1 = _moment;
 var greet = function (context) {
     if (!context)
         return 'Hello World!';
     var config = context.config;
     return config.greetings;
-    // return hellowWorldString.replace('%1', moment().format(timeFormat));
+    // return helloWorldString.replace('%1', moment().format(timeFormat));
 };
 var time = function (timeFormat) {
     if (timeFormat === void 0) { timeFormat = 'HH:mm:ss'; }
-    return moment().format(timeFormat);
+    return moment$1().format(timeFormat);
 };
 
 // Simple wrapper exposing environment variables to rest of the code.
@@ -90,6 +89,7 @@ var SpriteSheet = /** @class */ (function () {
 // Here is the starting point for your application code.
 // All stuff below is just to show you how it works. You can delete all of it.
 var jetpack = require('fs-jetpack'); // module loaded from npm
+var moment = _moment;
 console.log('Loaded environment variables:', env);
 window['moment'] = moment;
 var app = electron.remote.app;

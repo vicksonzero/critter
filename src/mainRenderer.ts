@@ -10,7 +10,9 @@ import { remote, ipcRenderer } from 'electron'; // native electron module
 const jetpack = require('fs-jetpack'); // module loaded from npm
 import { greet, time } from './hello_world/hello_world'; // code authored by you in this project
 import env from './env';
-import moment from 'moment';
+import * as _moment from 'moment';
+
+const moment = _moment;
 import { SpriteSheet } from './SpriteSheet';
 
 import { scheduleJob } from 'node-schedule';

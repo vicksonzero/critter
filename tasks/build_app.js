@@ -72,5 +72,5 @@ gulp.task('watch', function () {
 });
 
 gulp.task('build', function (callback) {
-    runsequence('ts', 'bundle', 'less', 'environment', callback)
+    runsequence('ts', 'bundle', 'less', 'envigitronment', callback)
 });

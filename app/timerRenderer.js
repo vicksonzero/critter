@@ -1,13 +1,13 @@
 (function () {'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 var electron = require('electron');
-var moment = _interopDefault(require('moment'));
+var _moment = require('moment');
 
-var getTimeStr = function (timeFormat) {
+var moment$1 = _moment;
+
+var time = function (timeFormat) {
     if (timeFormat === void 0) { timeFormat = 'HH:mm:ss'; }
-    return moment().format(timeFormat);
+    return moment$1().format(timeFormat);
 };
 
 // Simple wrapper exposing environment variables to rest of the code.
@@ -49,6 +49,7 @@ var chimeAudioString = "//uQZAAAAloZVZ0hIAAAAA0goAABGNldfbnakBAAADSDAAAAQBhFmcgO
 // Here is the starting point for your application code.
 // All stuff below is just to show you how it works. You can delete all of it.
 var jetpack = require('fs-jetpack'); // module loaded from npm
+var moment = _moment;
 console.log('Loaded environment variables:', env);
 window['moment'] = moment;
 var app = electron.remote.app;
@@ -100,7 +101,7 @@ function applyTimes() {
     constructTimelineKnobs(shownEvents);
 }
 function updateTime() {
-    document.querySelector('#clock').innerHTML = getTimeStr();
+    document.querySelector('#clock').innerHTML = time();
     updateTimerEvents();
     setTimeout(function () { return updateTime(); }, 0.5 * 1000);
 }
@@ -222,13 +223,12 @@ function parseTimerString(str) {
         .map(function (line, i) { return line.match(/\s*?(\d{2}:\d{2}:\d{2})(.*)/); })
         .filter(function (tokens) { return tokens; })
         .map(function (tokens) {
-        var time = tokens[1];
+        var time$$1 = tokens[1];
         var title = tokens[2] || '';
         if (title !== '') {
             title = title.trim();
         }
-        // getTimeStr
-        return new TimerEvent(time, title);
+        return new TimerEvent(time$$1, title);
     }));
     return events;
 }
